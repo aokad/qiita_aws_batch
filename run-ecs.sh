@@ -3,6 +3,19 @@ set -x
 set -o errexit
 set -o nounset
 
+export AWS_ACCOUNTID=123456789012
+export AWS_REGION=ap-northeast-1
+export SUBNET1=subnet-123a456b
+export SUBNET2=subnet-789c012d
+export SUBNET3=subnet-345e678f
+export SECURITYGROUPID=sg-11335577
+export KEY_NAME=mykey
+export S3_BUCKET=mybucket
+export AMI_ID=ami-a99d8ad5
+
+# ロググループを作成
+aws logs create-log-group --log-group-name mytask
+
 ####################################
 # クラスターの作成
 ####################################
