@@ -178,7 +178,7 @@ do
 
     TASK_STATE=$(jq -r '.tasks[0].lastStatus' describe-tasks.log)
 
-    if test "${TASK_STATE}" != "RUNNING"; then
+    if test "${TASK_STATE}" = "STOPPED"; then
         break
     fi
 

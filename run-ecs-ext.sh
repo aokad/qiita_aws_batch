@@ -31,6 +31,18 @@ CLUSTER_ARN=$(jq -r '.cluster.clusterArn' create-cluster.log)
 LOG_GROUP_NAME=mytask-$(date "+%Y%m%d-%H%M%S%Z")
 aws logs create-log-group --log-group-name ${LOG_GROUP_NAME}
 
+# シェルスクリプトを S3 にアップロードしておく
+cat << EOF > run-ext.sh
+set -x
+
+aws s3 cp \$1 ./input
+python wordcount.py ./input ./output
+aws s3 cp ./output \$2
+EOF
+
+RUN_SCRIPT_PATH=s3://${S3_BUCKET}/run-ext.sh
+aws s3 cp run-ext.sh ${RUN_SCRIPT_PATH}
+
 # コンテナ定義を作成
 ECSTASKROLE="arn:aws:iam::${AWS_ACCOUNTID}:role/AmazonECSTaskS3FullAccess"
 
@@ -39,7 +51,7 @@ cat << EOF > task_definition.json
     "containerDefinitions": [
         {
             "name": "mytask-definision",
-            "image": "python:3.6.5-alpine3.7",
+            "image": "aokad/aws-wordcount:base-0.0.1",
             "cpu": 1,
             "memory": 800,
             "essential": true,
@@ -48,7 +60,7 @@ cat << EOF > task_definition.json
                 "-c"
             ],
             "command": [
-                "pip install awscli; aws s3 cp \${SCRIPT} run.sh; ash run.sh \${INPUT} \${OUTPUT}"
+                "pip install awscli; aws configure list; aws s3 cp ${RUN_SCRIPT_PATH} run.sh; ash run.sh \${INPUT} \${OUTPUT}"
             ],
             "environment": [
                 {
@@ -58,16 +70,12 @@ cat << EOF > task_definition.json
                 {
                   "name": "OUTPUT",
                   "value": ""
-                },
-                {
-                  "name": "SCRIPT",
-                  "value": "s3://${S3_BUCKET}/run-ext.sh"
                 }
             ],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "mytask",
+                    "awslogs-group": "${LOG_GROUP_NAME}",
                     "awslogs-region": "${AWS_REGION}",
                     "awslogs-stream-prefix": "ecs-test"
                 }
@@ -85,17 +93,6 @@ aws ecs register-task-definition \
     > register-task-definition.log
 
 TASK_DEFINITION_ARN=$(jq -r '.taskDefinition.taskDefinitionArn' register-task-definition.log)
-
-# シェルスクリプトを S3 にアップロードしておく
-cat << EOF > run-ext.sh
-set -x
-
-aws s3 cp \$1 ./input
-python wordcount.py ./input ./output
-aws s3 cp ./output \$2
-EOF
-
-aws s3 cp run-ext.sh s3://${S3_BUCKET}/
 
 ####################################
 # EC2 インスタンスを起動する
@@ -193,7 +190,7 @@ do
 
     TASK_STATE=$(jq -r '.tasks[0].lastStatus' describe-tasks.log)
 
-    if test "${TASK_STATE}" != "RUNNING"; then
+    if test "${TASK_STATE}" = "STOPPED"; then
         break
     fi
 
