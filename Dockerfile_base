@@ -1,0 +1,7 @@
+FROM python:3.6.5-alpine3.7
+
+MAINTAINER aokad <aokad@hgc.jp>
+
+RUN wget https://raw.githubusercontent.com/aokad/ecsub/master/examples/wordcount.py
+    
+CMD ["ash"]
