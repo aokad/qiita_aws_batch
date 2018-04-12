@@ -13,9 +13,6 @@ export KEY_NAME=mykey
 export S3_BUCKET=mybucket
 export AMI_ID=ami-a99d8ad5
 
-# ロググループを作成
-aws logs create-log-group --log-group-name mytask
-
 ####################################
 # クラスターの作成
 ####################################
@@ -29,6 +26,10 @@ CLUSTER_ARN=$(jq -r '.cluster.clusterArn' create-cluster.log)
 ####################################
 # タスク定義を作成
 ####################################
+
+# ロググループを作成
+LOG_GROUP_NAME=mytask-$(date "+%Y%m%d-%H%M%S%Z")
+aws logs create-log-group --log-group-name ${LOG_GROUP_NAME}
 
 # コンテナ定義を作成
 ECSTASKROLE="arn:aws:iam::${AWS_ACCOUNTID}:role/AmazonECSTaskS3FullAccess"
