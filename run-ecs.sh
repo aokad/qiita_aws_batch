@@ -1,16 +1,26 @@
 #! /bin/bash
 set -x
-set -o errexit
 set -o nounset
 
+####################################
+# アカウント情報を環境変数にセットする
+####################################
+
+# アカウントID
 export AWS_ACCOUNTID=123456789012
+# リージョン
 export AWS_REGION=ap-northeast-1
+# デフォルトVPCのサブネットid
 export SUBNET1=subnet-123a456b
 export SUBNET2=subnet-789c012d
 export SUBNET3=subnet-345e678f
+# デフォルトセキュリティグループのID
 export SECURITYGROUPID=sg-11335577
+# SSH キー名
 export KEY_NAME=mykey
+# 作業用 S3 バケット名
 export S3_BUCKET=mybucket
+# Amazon ECS AMI の ID (リージョンに適したIDをセットすること)
 export AMI_ID=ami-a99d8ad5
 
 ####################################
