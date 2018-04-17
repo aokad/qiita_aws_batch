@@ -1,5 +1,3 @@
-# qiita_aws_batch
-
 Qiita 記事のサンプルデータです。
 
 記事本文はこちら
